@@ -19,11 +19,14 @@ func PlatformTriple() (string, error) {
 
 	switch runtime.GOOS {
 	case "linux":
+		if cpu == "aarch64" {
+			return "", fmt.Errorf("aarch64-linux has no prebuilt binary yet; build from source")
+		}
 		return cpu + "-unknown-linux-gnu", nil
 	case "darwin":
 		return cpu + "-apple-darwin", nil
 	case "windows":
-		return cpu + "-pc-windows-gnu", nil
+		return cpu + "-pc-windows-msvc", nil
 	default:
 		return "", fmt.Errorf("unsupported GOOS: %s", runtime.GOOS)
 	}
