@@ -1,0 +1,33 @@
+name: smoke
+
+# Real build + scan on every OS. The CLI downloads the published release
+# binary on first run, so this only passes once leakferrethq/leakferret
+# v0.1.0 is public.
+on:
+  workflow_dispatch:
+  # Uncomment after the release is published:
+  # push:
+  # pull_request:
+
+jobs:
+  build-and-scan:
+    name: go build + scan (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - run: go vet ./...
+      - name: Run the CLI and scan (downloads the release binary on first run)
+        shell: bash
+        run: |
+          mkdir -p app
+          printf "AWS_ACCESS_KEY = 'AKIAQ7W2E3R4T5Y6U7I8'\n" > app/config.rb
+          out="$(go run ./cmd/leakferret scan . || true)"
+          echo "$out"
+          echo "$out" | grep -q 'aws_access_key' || { echo "::error::go wrapper did not detect the planted secret"; exit 1; }
