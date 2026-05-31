@@ -5,9 +5,8 @@ name: smoke
 # v0.1.0 is public.
 on:
   workflow_dispatch:
-  # Uncomment after the release is published:
-  # push:
-  # pull_request:
+  push:
+  pull_request:
 
 jobs:
   build-and-scan:
