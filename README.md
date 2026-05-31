@@ -6,6 +6,10 @@
 
 > MCP-native secret scanner — verified findings, agent-applied rewrites.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/leakferrethq/leakferret/master/brand/demo.gif" alt="leakferret finds, verifies, and rewrites a leaked secret" width="760">
+</p>
+
 Go module wrapper around the native [`leakferret`](https://github.com/leakferrethq/leakferret)
 binary. This module ships no scanning logic of its own: it downloads the
 prebuilt, statically-linked binary (written in Rust) from GitHub Releases on
