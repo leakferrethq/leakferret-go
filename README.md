@@ -117,6 +117,34 @@ from GitHub Releases, and caches it. Subsequent calls reuse the cache.
   - `~/Library/Caches/leakferret/` (macOS)
   - `~/.cache/leakferret/` (Linux fallback)
 
+## Use it in CI
+
+The module installs a `leakferret` binary you can call in any pipeline
+(exit `0` = clean, `1` = findings):
+
+```bash
+go install github.com/leakferrethq/leakferret-go/cmd/leakferret@latest
+leakferret baseline init      # commit the baseline so CI fails only on NEW secrets
+leakferret verify .           # exits 1 on any REAL finding
+```
+
+On GitHub use the [action](https://github.com/leakferrethq/leakferret-action);
+on CircleCI / GitLab / Argo / Jenkins the recipe is identical. `--format sarif`
+for a report, `--only-verified` to fail only on confirmed-live keys.
+
+## Use it with AI agents (MCP)
+
+The same binary is an MCP server, so a coding agent (Cursor, Claude, Continue)
+can scan, verify, and rewrite before it commits:
+
+```json
+{ "mcpServers": { "leakferret": { "command": "leakferret", "args": ["mcp"] } } }
+```
+
+Cursor: Settings → MCP. Claude Desktop: `claude_desktop_config.json`. Running
+`leakferret mcp` in a terminal looks like a hang — that's correct, it's a stdio
+JSON-RPC server waiting for the editor to connect.
+
 ## Platforms
 
 Prebuilt binaries are published for `x86_64-unknown-linux-gnu`,
