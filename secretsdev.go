@@ -26,7 +26,7 @@ import (
 
 // Version is the binary version this wrapper targets. Update in lockstep
 // with the Rust crate version.
-const Version = "0.1.4"
+const Version = "0.1.5"
 
 // VerifyMode controls live-credential verification.
 type VerifyMode string

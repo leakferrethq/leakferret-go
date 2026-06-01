@@ -23,11 +23,11 @@ import (
 // module source, auditing a tagged version tells you exactly which binary bytes
 // it will run. Regenerate on every binary bump from the *.tar.gz.sha256 files.
 var checksums = map[string]string{
-	"aarch64-apple-darwin":     "30539f730e84ec410d5adda34d0c0427002661e65706f5daa6b6739a10422ce0",
-	"aarch64-pc-windows-msvc":  "ce1edb57bdeed1889a4c848b462432a8e888bdba7a7c7f4698dd62b1242697e4",
-	"x86_64-apple-darwin":      "50318959c66843b5cd2f1968aae58ae53f53890265374f9e70540d3b1f5710f6",
-	"x86_64-pc-windows-msvc":   "56b31c441b2f92ff4c708104dbfdb1bae65e25440cd95d2aeaaa08535a15a863",
-	"x86_64-unknown-linux-gnu": "bcb6ed3098379e794631c38d35037dc55c0d50e5645461faea574439cc477586",
+	"aarch64-apple-darwin":     "1f22f022e63cd5f986a89c6fe1714f32556855117bd8cc3b0737df3723831566",
+	"aarch64-pc-windows-msvc":  "9611345826fd68684318519cda5dcdbcf07b89fd5d37c75860eb6f73cd6bd963",
+	"x86_64-apple-darwin":      "23865d135683c7a8763f0a8afe154cebaa52b37fc6eae5afa7e9cf8cc4721b03",
+	"x86_64-pc-windows-msvc":   "0ef58e8b24a081c44aef644e744e96d2223c1b368fa711bf6a914d044ffeaede",
+	"x86_64-unknown-linux-gnu": "ac25d383ebeb1ea7dcfae0727bf2317bd16281b78ebc1cc24ee5d69d79ccd2ef",
 }
 
 // BinaryPath returns the absolute path to the leakferret binary,
