@@ -2,6 +2,7 @@ package leakferret
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"crypto/sha256"
 	"encoding/hex"
@@ -12,8 +13,22 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 )
+
+// checksums pins the SHA256 of each release tarball to Version. The download is
+// verified against these before extraction, so a tampered or corrupted release
+// asset is rejected rather than executed. Because the digests live in the
+// module source, auditing a tagged version tells you exactly which binary bytes
+// it will run. Regenerate on every binary bump from the *.tar.gz.sha256 files.
+var checksums = map[string]string{
+	"aarch64-apple-darwin":     "62d7152954e3e2e50d8423c8a1e792ba1783123b8a9d8c5fbc2a71013e890992",
+	"aarch64-pc-windows-msvc":  "6ad3eb20a661579c11857259159f8fb55b26f72608c75ecc206fff5f9da9c800",
+	"x86_64-apple-darwin":      "d8b28edf427b975412458007069a848e16cea45825e43dff3652bdcd3fd3f1d3",
+	"x86_64-pc-windows-msvc":   "f447424f148a6874dc2ead208eb460a9f6b20d6ddbce6f74ca9b2d47655e1b2b",
+	"x86_64-unknown-linux-gnu": "bf24746f1188d14b2b420e760ebd374a4f88a68ea1b718e7977d8c7309a9f1da",
+}
 
 // BinaryPath returns the absolute path to the leakferret binary,
 // downloading + caching it on first call.
@@ -94,6 +109,12 @@ func download(triple, dest string) error {
 	if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
 		return err
 	}
+	expected, ok := checksums[triple]
+	if !ok {
+		return fmt.Errorf(
+			"no pinned checksum for platform %s; refusing to run an unverified binary "+
+				"(build from source and set LEAKFERRET_BIN)", triple)
+	}
 	url := fmt.Sprintf(
 		"https://github.com/leakferrethq/leakferret/releases/download/v%s/leakferret-%s-%s.tar.gz",
 		Version, Version, triple,
@@ -107,8 +128,24 @@ func download(triple, dest string) error {
 		return fmt.Errorf("download %s: HTTP %d", url, resp.StatusCode)
 	}
 
-	hashed := sha256.New()
-	gz, err := gzip.NewReader(io.TeeReader(resp.Body, hashed))
+	// Read the whole tarball, verify its SHA256 against the pinned value, and
+	// only then unpack. Nothing is written to the cache (let alone marked
+	// executable) until the bytes match, so a tampered or truncated release
+	// asset is rejected rather than run.
+	archive, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("read archive: %w", err)
+	}
+	sum := sha256.Sum256(archive)
+	actual := hex.EncodeToString(sum[:])
+	if !strings.EqualFold(actual, expected) {
+		return fmt.Errorf(
+			"checksum mismatch for %s:\n  expected %s\n  got      %s\n"+
+				"refusing to install a binary that does not match the pinned hash",
+			url, expected, actual)
+	}
+
+	gz, err := gzip.NewReader(bytes.NewReader(archive))
 	if err != nil {
 		return fmt.Errorf("gunzip: %w", err)
 	}
@@ -136,9 +173,6 @@ func download(triple, dest string) error {
 		if err := out.Close(); err != nil {
 			return fmt.Errorf("close binary: %w", err)
 		}
-		// Log the SHA so users can audit the download once we publish
-		// a manifest with expected hashes.
-		_ = hex.EncodeToString(hashed.Sum(nil))
 		return nil
 	}
 	return fmt.Errorf("binary %s not found in archive", binaryName())
