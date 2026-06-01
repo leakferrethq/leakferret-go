@@ -157,6 +157,28 @@ Prebuilt binaries are published for `x86_64-unknown-linux-gnu`,
 published; on that platform, build the engine from source and point
 `LEAKFERRET_BIN` at it.
 
+## Block commits locally (pre-commit hook)
+
+Catch a secret before it is ever committed. From your repo root:
+
+```bash
+cat > .git/hooks/pre-commit <<'HOOK'
+#!/bin/sh
+# Offline secret scan (no network). Blocks the commit on any finding.
+leakferret verify . --verify-mode none --fail-on any || {
+  echo "leakferret blocked this commit. Bypass: git commit --no-verify"
+  exit 1
+}
+HOOK
+chmod +x .git/hooks/pre-commit
+```
+
+`--verify-mode none` keeps it offline; `--fail-on any` exits non-zero on any
+non-fixture finding (documented examples like `AKIAIOSFODNN7EXAMPLE` are still
+ignored). Pair with `leakferret baseline init` to block only on *new* secrets,
+or commit the hook to `.githooks/` and run `git config core.hooksPath .githooks`
+to share it with a team.
+
 ## License
 
 MIT for this module and the bundled binary. The fixture catalog **data** is
