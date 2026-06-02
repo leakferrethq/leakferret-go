@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="leakferret" width="380">
+  <img src="https://raw.githubusercontent.com/leakferrethq/leakferret/master/brand/logo.png" alt="leakferret" width="380">
 </p>
 
 # leakferret (Go module)
